@@ -18,7 +18,9 @@ A Python-based basic network packet sniffer built using Scapy to capture and ana
 ```text
 CodeAlpha_BasicNetworkSniffer/
 ├── sniffer.py
+├── requirements.txt
 ├── README.md
+├── captured_traffic.pcap
 └── screenshots/
 ```
 
@@ -30,6 +32,9 @@ https://drive.google.com/drive/folders/14PSLChQjBlzxbswHcxDwxD5XX23PC-rn?usp=dri
 
 ## 🖼️ Screenshots
 Project output screenshots are available in the `screenshots` folder.
+
+## 📄 Sample Capture File
+A sample captured network traffic file (`captured_traffic.pcap`) is included in the repository for packet analysis and review.
 
 ## 🚀 Installation & Usage
 
