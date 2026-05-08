@@ -13,9 +13,8 @@ screenshots/
 sniffer.py
 
 ## 🎥 Demo Videos
-- 01_CodeAlpha_Task1_setup
-- 02_CodeAlpha_Project_setup
-- 03_CodeAlpha_Task1_Live_Packet_Capture
+Watch full project demo here:
+https://drive.google.com/drive/folders/14PSLChQjBlzxbswHcxDwxD5XX23PC-rn?usp=drive_link
 
 ## 🖼️ Screenshots
 Screenshots of packet capture outputs included in the screenshots folder.
