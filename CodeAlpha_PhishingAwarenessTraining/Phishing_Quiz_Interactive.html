@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phishing Awareness Quiz — CodeAlpha 2026</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+  :root {
+    --bg:#0E1621;--panel:#141F2E;--card:#192030;--cardalt:#1C2540;--border:#253147;
+    --teal:#4ECDC4;--indigo:#6C7FD8;--slate:#5B8DB8;--sage:#6BAE9C;
+    --rose:#C47A7A;--amber:#C4965A;--lavender:#8B87C4;
+    --white:#F0F4F8;--muted:#B8C5D6;--dim:#6B7FA0;
+    --cbg:#0d2825;--wbg:#2a1515;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--white);min-height:100vh;}
+
+  /* HEADER */
+  .hdr{background:var(--panel);border-bottom:1px solid var(--border);padding:.85rem 2rem;
+    display:flex;align-items:center;gap:1rem;position:sticky;top:0;z-index:100;}
+  .badge{font-family:'DM Mono',monospace;font-size:.62rem;letter-spacing:.12em;color:var(--teal);
+    border:1px solid var(--teal);padding:.2rem .55rem;border-radius:3px;white-space:nowrap;}
+  .hdr-title{font-size:.95rem;font-weight:600;flex:1;}
+  .hdr-prog{display:flex;align-items:center;gap:.7rem;font-family:'DM Mono',monospace;
+    font-size:.78rem;color:var(--dim);}
+  .prog-track{width:130px;height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
+  .prog-fill{height:100%;background:var(--teal);border-radius:2px;transition:width .4s ease;width:0%;}
+
+  /* LAYOUT */
+  .main{max-width:820px;margin:0 auto;padding:2.5rem 1.5rem 5rem;}
+  .screen{display:none;}
+  .screen.active{display:block;animation:fadeUp .35s ease;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+  /* WELCOME */
+  .welcome{background:var(--card);border:1px solid var(--border);border-top:3px solid var(--teal);
+    border-radius:10px;padding:2.8rem 2.2rem;text-align:center;}
+  .welcome h1{font-size:2rem;font-weight:700;color:var(--teal);letter-spacing:-.02em;margin-bottom:.5rem;}
+  .welcome p{color:var(--muted);font-size:.98rem;line-height:1.65;margin-bottom:1.2rem;}
+  .topic-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:.6rem;margin:1.6rem 0 2rem;}
+  .topic-pill{background:var(--cardalt);border-radius:6px;padding:.55rem .4rem;font-size:.78rem;
+    color:var(--muted);text-align:center;border-top:2px solid var(--teal);}
+  .topic-pill strong{display:block;font-family:'DM Mono',monospace;font-size:.68rem;
+    color:var(--teal);margin-bottom:.25rem;}
+
+  /* QUESTION */
+  .q-meta{display:flex;align-items:center;gap:.6rem;margin-bottom:.7rem;}
+  .q-badge{font-family:'DM Mono',monospace;font-size:.68rem;padding:.18rem .55rem;
+    border-radius:4px;background:var(--cardalt);border:1px solid var(--border);letter-spacing:.08em;}
+  .q-cat{font-size:.72rem;color:var(--dim);font-family:'DM Mono',monospace;letter-spacing:.06em;}
+  .q-box{background:var(--card);border:1px solid var(--border);border-radius:8px;
+    padding:1.2rem 1.4rem;font-size:1.05rem;font-weight:600;line-height:1.55;
+    color:var(--white);border-left:4px solid var(--qa,var(--teal));margin-bottom:1.2rem;}
+
+  /* OPTIONS */
+  .options{display:flex;flex-direction:column;gap:.6rem;margin-bottom:1.3rem;}
+  .opt{display:flex;align-items:center;gap:.85rem;background:var(--cardalt);
+    border:1.5px solid var(--border);border-radius:8px;padding:.9rem 1.1rem;cursor:pointer;
+    transition:border-color .15s,background .15s,transform .1s;user-select:none;}
+  .opt:hover:not(.locked){border-color:var(--qa,var(--teal));background:#1e2d42;transform:translateX(4px);}
+  .opt.locked{cursor:default;}.opt.locked:hover{transform:none;}
+  .opt.selected{border-color:var(--qa,var(--teal));background:#1a2d40;}
+  .opt.correct-ans{border-color:var(--teal)!important;background:var(--cbg)!important;}
+  .opt.wrong-ans  {border-color:var(--rose)!important;background:var(--wbg)!important;}
+  .opt.reveal-ans {border-color:var(--teal)!important;background:var(--cbg)!important;}
+  .opt-ltr{width:30px;height:30px;border-radius:6px;background:var(--panel);border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;
+    font-size:.82rem;font-weight:700;color:var(--muted);flex-shrink:0;
+    transition:background .15s,color .15s,border-color .15s;}
+  .opt.selected .opt-ltr   {background:var(--qa,var(--teal));color:var(--bg);border-color:transparent;}
+  .opt.correct-ans .opt-ltr{background:var(--teal);color:var(--bg);border-color:transparent;}
+  .opt.wrong-ans   .opt-ltr{background:var(--rose);color:var(--bg);border-color:transparent;}
+  .opt.reveal-ans  .opt-ltr{background:var(--teal);color:var(--bg);border-color:transparent;}
+  .opt-txt{font-size:.92rem;color:var(--muted);line-height:1.45;transition:color .15s;}
+  .opt.selected    .opt-txt{color:var(--white);font-weight:500;}
+  .opt.correct-ans .opt-txt{color:var(--teal);font-weight:600;}
+  .opt.wrong-ans   .opt-txt{color:var(--rose);font-weight:600;}
+  .opt.reveal-ans  .opt-txt{color:var(--teal);}
+
+  /* FEEDBACK */
+  .fb{display:none;border-radius:8px;padding:.9rem 1.1rem;font-size:.9rem;
+    line-height:1.55;margin-bottom:1.3rem;}
+  .fb.show{display:block;animation:fadeUp .3s ease;}
+  .fb.fb-ok {background:var(--cbg);border:1px solid var(--teal);color:var(--teal);}
+  .fb.fb-bad{background:var(--wbg);border:1px solid var(--rose);color:var(--rose);}
+
+  /* BUTTONS */
+  .btn-row{display:flex;justify-content:space-between;align-items:center;gap:1rem;}
+  .q-counter{font-family:'DM Mono',monospace;font-size:.8rem;color:var(--dim);}
+  .btn{font-family:'DM Sans',sans-serif;font-size:.92rem;font-weight:700;border:none;
+    border-radius:8px;padding:.75rem 2rem;cursor:pointer;transition:opacity .2s,transform .12s,box-shadow .2s;
+    letter-spacing:.02em;}
+  .btn:active{transform:scale(.97);}
+  .btn-primary{background:var(--teal);color:var(--bg);}
+  .btn-primary:hover:not(:disabled){opacity:.88;box-shadow:0 4px 18px rgba(78,205,196,.3);}
+  .btn-primary:disabled{opacity:.3;cursor:not-allowed;transform:none;}
+  .btn-ghost{background:transparent;color:var(--teal);border:1.5px solid var(--teal);}
+  .btn-ghost:hover{background:rgba(78,205,196,.08);}
+
+  /* RESULTS */
+  .res-hero{background:var(--card);border:1px solid var(--border);border-top:3px solid var(--teal);
+    border-radius:10px;padding:2rem;display:flex;align-items:center;gap:2rem;margin-bottom:1.6rem;}
+  .score-ring{width:100px;height:100px;border-radius:50%;border:3px solid var(--teal);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    flex-shrink:0;background:var(--cbg);}
+  .score-num{font-family:'DM Mono',monospace;font-size:2rem;font-weight:700;color:var(--teal);line-height:1;}
+  .score-den{font-family:'DM Mono',monospace;font-size:.72rem;color:var(--dim);}
+  .res-msg h2{font-size:1.25rem;font-weight:700;margin-bottom:.4rem;}
+  .res-msg p{font-size:.9rem;color:var(--muted);line-height:1.55;}
+  .bands{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;margin-bottom:1.6rem;}
+  .band{background:var(--cardalt);border-radius:8px;padding:1rem;text-align:center;border-top:3px solid var(--border);}
+  .band-r{font-family:'DM Mono',monospace;font-size:1.3rem;font-weight:700;margin-bottom:.25rem;}
+  .band-l{font-size:.85rem;font-weight:700;color:var(--white);margin-bottom:.25rem;}
+  .band-d{font-size:.78rem;color:var(--muted);line-height:1.4;}
+  .bd-title{font-size:.72rem;font-family:'DM Mono',monospace;letter-spacing:.1em;
+    color:var(--dim);margin-bottom:.7rem;}
+  .breakdown{background:var(--card);border:1px solid var(--border);border-radius:8px;
+    overflow:hidden;margin-bottom:1.6rem;}
+  .bd-row{display:grid;grid-template-columns:2fr 1.2fr 1.8fr;gap:.5rem;
+    padding:.75rem 1rem;border-bottom:1px solid var(--border);align-items:start;font-size:.84rem;}
+  .bd-row:last-child{border-bottom:none;}
+  .bd-head{font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.1em;
+    color:var(--dim);background:var(--cardalt);padding:.5rem 1rem;}
+  .bd-q{color:var(--muted);line-height:1.4;}
+  .bd-c{color:var(--teal);font-weight:500;line-height:1.4;}
+  .tag{display:inline-block;font-family:'DM Mono',monospace;font-size:.65rem;
+    padding:.12rem .4rem;border-radius:3px;margin-bottom:.25rem;}
+  .tag-ok {background:var(--cbg);color:var(--teal);border:1px solid var(--teal);}
+  .tag-bad{background:var(--wbg);color:var(--rose);border:1px solid var(--rose);}
+  .res-foot{text-align:center;font-size:.78rem;color:var(--dim);
+    font-family:'DM Mono',monospace;margin-top:1rem;}
+
+  @media(max-width:600px){
+    .topic-grid{grid-template-columns:repeat(2,1fr);}
+    .bands{grid-template-columns:1fr;}
+    .bd-row{grid-template-columns:1fr;gap:.3rem;}
+    .bd-head{display:none;}
+    .prog-track{display:none;}
+    .res-hero{flex-direction:column;text-align:center;}
+  }
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <span class="badge">CODEALPHA · 2026</span>
+  <span class="hdr-title">Phishing Awareness — Knowledge Check</span>
+  <div class="hdr-prog">
+    <span id="hdr-n">0 / 10</span>
+    <div class="prog-track"><div class="prog-fill" id="prog-fill"></div></div>
+  </div>
+</header>
+
+<main class="main">
+
+  <!-- WELCOME -->
+  <div class="screen active" id="s-welcome">
+    <div class="welcome">
+      <h1>Knowledge Check</h1>
+      <p>10 scenario-based questions covering every key topic from the Phishing Awareness Training.<br>
+      One question per page — select your answer and click <strong>Next</strong> to proceed.<br>
+      Your full score and answer breakdown appear at the end.</p>
+      <div class="topic-grid">
+        <div class="topic-pill"><strong>Q1</strong>Phishing Definition</div>
+        <div class="topic-pill"><strong>Q2</strong>Attack Types</div>
+        <div class="topic-pill"><strong>Q3</strong>Sender Spoofing</div>
+        <div class="topic-pill"><strong>Q4</strong>Social Engineering</div>
+        <div class="topic-pill"><strong>Q5</strong>HTTPS Myth</div>
+        <div class="topic-pill"><strong>Q6</strong>Attachments</div>
+        <div class="topic-pill"><strong>Q7</strong>QR Phishing</div>
+        <div class="topic-pill"><strong>Q8</strong>CEO Fraud / BEC</div>
+        <div class="topic-pill"><strong>Q9</strong>Prevention & MFA</div>
+        <div class="topic-pill"><strong>Q10</strong>Real Incident</div>
+      </div>
+      <button class="btn btn-primary" id="btn-start">&#9654;&nbsp; Start Quiz</button>
+    </div>
+  </div>
+
+  <!-- QUESTION -->
+  <div class="screen" id="s-question">
+    <div class="q-meta">
+      <span class="q-badge" id="q-badge">Q 01</span>
+      <span class="q-cat"  id="q-cat">CATEGORY</span>
+    </div>
+    <div class="q-box" id="q-text"></div>
+    <div class="options" id="q-opts"></div>
+    <div class="fb" id="q-fb"></div>
+    <div class="btn-row">
+      <span class="q-counter" id="q-ctr">Question 1 of 10</span>
+      <button class="btn btn-primary" id="btn-next" disabled>Next &nbsp;&#8594;</button>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="screen" id="s-results">
+    <div class="res-hero">
+      <div class="score-ring" id="score-ring">
+        <span class="score-num" id="res-num">0</span>
+        <span class="score-den">/ 10</span>
+      </div>
+      <div class="res-msg">
+        <h2 id="res-title">Results</h2>
+        <p  id="res-desc"></p>
+      </div>
+    </div>
+    <div class="bands">
+      <div class="band" style="border-color:var(--teal)">
+        <div class="band-r" style="color:var(--teal)">9 – 10</div>
+        <div class="band-l">Outstanding</div>
+        <div class="band-d">Expert phishing awareness — share this training with your team</div>
+      </div>
+      <div class="band" style="border-color:var(--sage)">
+        <div class="band-r" style="color:var(--sage)">6 – 8</div>
+        <div class="band-l">Well Done</div>
+        <div class="band-d">Strong foundation — review the questions you missed</div>
+      </div>
+      <div class="band" style="border-color:var(--rose)">
+        <div class="band-r" style="color:var(--rose)">0 – 5</div>
+        <div class="band-l">Needs Review</div>
+        <div class="band-d">Revisit the training slides and retake the quiz</div>
+      </div>
+    </div>
+    <p class="bd-title">ANSWER BREAKDOWN</p>
+    <div class="breakdown">
+      <div class="bd-row bd-head">
+        <span>QUESTION</span><span>YOUR ANSWER</span><span>CORRECT ANSWER</span>
+      </div>
+      <div id="bd-body"></div>
+    </div>
+    <div style="text-align:center">
+      <button class="btn btn-ghost" id="btn-retry">&#8635;&nbsp; Retake Quiz</button>
+    </div>
+    <p class="res-foot">CodeAlpha Phishing Awareness Training &middot; 2026</p>
+  </div>
+
+</main>
+
+<script>
+const QS = [
+  {
+    cat:"PHISHING DEFINITION", accent:"var(--teal)",
+    q:"Which of the following best describes a phishing attack?",
+    opts:[
+      "A virus that encrypts your files and demands a ransom payment to restore access",
+      "A deceptive attempt to steal sensitive information by impersonating a trusted entity such as a bank or company",
+      "An attack that floods a server with traffic to make it unavailable to users",
+      "Unauthorised physical access to an organisation's data centre or server room",
+    ],
+    correct:1,
+    ok:"Correct. Phishing is fundamentally a deception attack — criminals impersonate trusted entities to steal credentials, financial data, or personal information. It accounts for 36% of all data breaches (Verizon DBIR 2024).",
+    bad:"Phishing is a deception attack where criminals impersonate trusted entities to trick victims into revealing sensitive information. Ransomware (A), DDoS (C), and physical intrusion (D) are separate attack categories.",
+  },
+  {
+    cat:"TYPES OF PHISHING", accent:"var(--indigo)",
+    q:"A criminal researches your full name, job title, manager's name, and a recent company project from LinkedIn — then sends you a highly personalised email using that exact information. Which attack type is this?",
+    opts:[
+      "Email phishing — a mass campaign sent identically to thousands of recipients at once",
+      "Whaling — an attack specifically targeting a senior executive or C-suite member",
+      "Spear phishing — a precision attack built using personal OSINT research on the specific target",
+      "Vishing — a social engineering attack carried out over a voice phone call",
+    ],
+    correct:2,
+    ok:"Correct. Spear phishing uses OSINT (Open Source Intelligence) — LinkedIn, company websites, social media — to craft highly personalised lures. The personal detail makes victims far more likely to comply than with generic mass emails.",
+    bad:"This is spear phishing. Mass email phishing (A) sends the same message to thousands. Whaling (B) targets C-suite executives. Vishing (D) is by phone call. Spear phishing is defined by its use of OSINT to personalise the attack on a specific individual.",
+  },
+  {
+    cat:"SENDER VERIFICATION", accent:"var(--slate)",
+    q:"An email arrives appearing to be from 'Barclays Security Team' — but the actual sender address is alert@barclays-secure-login.net. What is the correct first action?",
+    opts:[
+      "Do not click anything. barclays-secure-login.net is not Barclays' official domain — this is display name spoofing",
+      "Trust it — the display name clearly says Barclays Security Team so it must be genuine",
+      "Click the link carefully to check whether the landing page looks like the real Barclays site",
+      "Reply to the email asking them to confirm their identity before taking any action",
+    ],
+    correct:0,
+    ok:"Correct. Display name spoofing is one of the most exploited gaps in email security. The visible sender name can be set to anything by anyone. The only reliable indicator is the actual email domain — barclays-secure-login.net has nothing to do with Barclays. Always inspect the full address, never just the display name.",
+    bad:"The display name means nothing — it can say 'Barclays Security Team' while being sent from any attacker. The real indicator is the sender domain: barclays-secure-login.net is a fake domain. Clicking the link (C) risks credential theft. Replying (D) contacts the attacker directly.",
+  },
+  {
+    cat:"SOCIAL ENGINEERING", accent:"var(--rose)",
+    q:"You receive this message: 'URGENT: Your Microsoft 365 account will be permanently deleted in 2 hours unless you verify your identity immediately. Click here now.' Which social engineering tactic combination is being used?",
+    opts:[
+      "Rewards and Curiosity — promising something valuable while making you curious about your account",
+      "Authority and Pretexting — impersonating Microsoft within a fabricated technical scenario",
+      "Urgency and Fear — manufactured time pressure combined with threat of permanent loss to bypass rational thought",
+      "Curiosity and Reciprocity — making you curious about your account with a sense of obligation to respond",
+    ],
+    correct:2,
+    ok:"Correct. Urgency and Fear are the two most potent social engineering tactics used together. 'URGENT' removes your thinking time. 'Permanently deleted' triggers fear of irreversible loss. Together they prevent you from pausing to verify — which is exactly what phishing relies on. Legitimate organisations never threaten account deletion with a 2-hour deadline.",
+    bad:"The key signals are 'URGENT' (urgency) and 'permanently deleted' (fear of loss). This combination bypasses rational thought by creating a false crisis. While Microsoft branding introduces Authority, the primary driving tactics are Urgency and Fear — designed to force action before verification.",
+  },
+  {
+    cat:"HTTPS AND WEBSITE SAFETY", accent:"var(--amber)",
+    q:"A website shows a padlock and https:// in the address bar and looks pixel-perfect like your bank's login page. A colleague says 'the padlock means it's safe — enter your details.' Are they correct?",
+    opts:[
+      "Yes — HTTPS and a valid padlock confirm the site is legitimate and owned by your bank",
+      "Yes — phishing sites cannot obtain SSL certificates so the padlock is a reliable trust signal",
+      "No — HTTPS only confirms the connection is encrypted, not that the site is genuine. Always verify the exact domain name",
+      "Yes — as long as no browser security warnings appeared during page loading, the site is safe",
+    ],
+    correct:2,
+    ok:"Correct. Your colleague is wrong — and this is the most dangerous misconception in cybersecurity. Over 85% of phishing sites now use HTTPS with valid SSL certificates (2024 data). Free certificates from Let's Encrypt take minutes to obtain. The padlock only means your connection is encrypted — it says nothing about who owns the server.",
+    bad:"This is the most dangerous cybersecurity misconception. Over 85% of phishing sites have HTTPS and a valid padlock in 2024. Free SSL certificates are available to anyone within minutes. The padlock confirms encryption only — it does NOT confirm site legitimacy. Always verify the actual domain name, not just the padlock.",
+  },
+  {
+    cat:"MALICIOUS ATTACHMENTS", accent:"var(--lavender)",
+    q:"You receive an unexpected email from an unknown sender with an attachment named Invoice_October_2026.docx. You were not expecting any invoice. What is the safest course of action?",
+    opts:[
+      "Open it — .docx files are standard Word documents and cannot execute malicious code",
+      "Do not open it. Report the email to your IT or security team immediately without clicking anything",
+      "Open it only if your antivirus software scans it first and raises no alert",
+      "Forward it to a trusted colleague to open on your behalf and report back to you",
+    ],
+    correct:1,
+    ok:"Correct. Word .docx files can contain malicious macros that execute code when opened — one of the most common malware delivery methods. Antivirus tools miss new and obfuscated variants regularly. Forwarding puts a colleague at risk. Always report unexpected attachments from unknown senders to IT without opening.",
+    bad:".docx files can absolutely contain malware through macros — this is a primary delivery method for ransomware and trojans. Antivirus tools do not catch every variant. Forwarding to a colleague simply transfers the risk. The correct action is always to report to IT or security without opening the attachment.",
+  },
+  {
+    cat:"QR CODE PHISHING", accent:"var(--sage)",
+    q:"You find an anonymous flyer in your office kitchen: 'Scan this QR code to claim your free staff lunch voucher!' Nobody knows who placed the flyers. What is the risk?",
+    opts:[
+      "This is likely Quishing (QR phishing) — the QR code may redirect to a credential-stealing phishing site or trigger a malware download",
+      "No significant risk — QR codes are simply links and cannot themselves be malicious",
+      "Completely safe — it is a physical flyer in the office so it must have been placed by the company",
+      "Only risky if scanned on a work-issued device — personal phones are not at risk from QR code attacks",
+    ],
+    correct:0,
+    ok:"Correct. Quishing (QR code phishing) is one of the fastest-growing attack vectors of 2023–2026. QR codes cannot be previewed before scanning the way URLs can be hovered over. Physical placement in an office gives a false sense of legitimacy — attackers deliberately place them in trusted environments.",
+    bad:"Quishing (QR phishing) is a major and growing attack type. QR codes encode URLs that can point to phishing sites or malware downloads — and unlike email links you cannot preview the destination before scanning. Physical placement does not mean legitimacy. Never scan anonymous QR codes without verifying the source.",
+  },
+  {
+    cat:"CEO FRAUD / BEC", accent:"var(--slate)",
+    q:"At 11:45 PM your CEO emails you: 'I need you to wire $18,000 to a new vendor right now before the bank closes. This is very time-sensitive — please do not mention this to anyone else yet.' What is the correct response?",
+    opts:[
+      "Process the wire transfer immediately — the CEO's direct request overrides standard financial controls",
+      "Reply to the email asking for a formal purchase order number as written authorisation before acting",
+      "Call the CEO directly on her known verified mobile number to confirm — the secrecy instruction is itself a serious red flag",
+      "Forward the request to the finance manager and ask them to process it on your behalf",
+    ],
+    correct:2,
+    ok:"Correct. This is textbook Business Email Compromise (BEC). Three simultaneous red flags: unusual financial request, unusual hour, and an explicit secrecy instruction. The 'don't tell anyone' demand prevents verification through normal channels. Replying to the email contacts the attacker. Out-of-band verification on a known number is the only safe action.",
+    bad:"Three BEC red flags: unusual financial request, unusual timing (11:45 PM), and a secrecy instruction. The secrecy demand is specifically designed to stop verification through normal channels. Replying to the email contacts the attacker — not your CEO. Forwarding moves but does not eliminate the risk. Always verify out-of-band on a phone number you already know.",
+  },
+  {
+    cat:"PREVENTION AND MFA", accent:"var(--teal)",
+    q:"Which combination of actions provides the strongest personal protection against phishing attacks in 2026?",
+    opts:[
+      "One strong memorable password across all accounts plus SMS text-based two-factor authentication",
+      "Relying on your organisation's email security gateway and antivirus software to block all phishing attempts",
+      "An authenticator app (TOTP codes) on all accounts and being cautious about which emails you open",
+      "A password manager with unique credentials per site, FIDO2 or passkey MFA, and never clicking links in unsolicited emails",
+    ],
+    correct:3,
+    ok:"Correct. This is the gold-standard defence. A password manager ensures unique credentials so one breach cannot cascade. FIDO2/passkeys are cryptographically bound to the exact domain — an AiTM proxy cannot intercept or relay them. Never clicking unsolicited links eliminates the primary delivery mechanism. SMS OTP and TOTP codes can both be intercepted by real-time AiTM proxy attacks.",
+    bad:"Password reuse means one breach compromises every account. Email gateways and antivirus miss many attacks. Authenticator app TOTP codes can be intercepted in real time by Attacker-in-the-Middle (AiTM) proxies. FIDO2/passkeys are the only MFA type that is phishing-resistant by design — cryptographically bound to the specific domain, they cannot be relayed to a fake site.",
+  },
+  {
+    cat:"REAL-WORLD INCIDENT", accent:"var(--amber)",
+    q:"The 2023 MGM Resorts cyberattack caused over $100 million in damage and disrupted US hotel and casino operations for more than 10 days. No malware was deployed in the initial access phase. How did attackers gain full system entry?",
+    opts:[
+      "They brute-forced MGM administrator account passwords systematically over several weeks",
+      "They called MGM's IT helpdesk posing as an employee, used LinkedIn to research personal details, and social-engineered the team into resetting MFA — the entire initial access took one 10-minute phone call",
+      "They sent targeted spear phishing emails to 500 MGM employees and one recipient clicked a malicious link",
+      "They physically entered an MGM hotel and connected a malicious device to an unsecured network port",
+    ],
+    correct:1,
+    ok:"Correct. The MGM attack is the defining modern case study for human-layer security. No malware, no zero-day — one 10-minute phone call. Attackers researched an MGM employee on LinkedIn, called the IT helpdesk impersonating that employee with convincing personal details, and social-engineered the team into resetting MFA credentials. $100M+ in damage followed. The human is always the most critical attack surface.",
+    bad:"The MGM attackers used pure social engineering — no technical exploits at all. They found an employee on LinkedIn, called the IT helpdesk impersonating that person, and convinced the team to reset their MFA. One 10-minute phone call. $100M+ in damage. This is why human awareness training is as important as any technical security control.",
+  },
+];
+
+// STATE
+let cur = 0, answered = false, log = [];
+
+// ELEMENTS
+const sWelcome  = document.getElementById('s-welcome');
+const sQuestion = document.getElementById('s-question');
+const sResults  = document.getElementById('s-results');
+const btnStart  = document.getElementById('btn-start');
+const btnNext   = document.getElementById('btn-next');
+const btnRetry  = document.getElementById('btn-retry');
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function setProgress(n) {
+  document.getElementById('hdr-n').textContent  = n + ' / ' + QS.length;
+  document.getElementById('prog-fill').style.width = (n / QS.length * 100) + '%';
+}
+
+function renderQ(idx) {
+  const Q = QS[idx];
+  answered = false;
+  btnNext.disabled = true;
+
+  // accent colour on question wrapper
+  sQuestion.style.setProperty('--qa', Q.accent);
+
+  document.getElementById('q-badge').textContent = 'Q ' + String(idx+1).padStart(2,'0');
+  document.getElementById('q-cat').textContent   = Q.cat;
+  document.getElementById('q-text').textContent  = Q.q;
+  document.getElementById('q-ctr').textContent   = 'Question ' + (idx+1) + ' of ' + QS.length;
+
+  const fb = document.getElementById('q-fb');
+  fb.className = 'fb';
+  fb.textContent = '';
+
+  const opts = document.getElementById('q-opts');
+  opts.innerHTML = '';
+  ['A','B','C','D'].forEach((ltr, i) => {
+    const d = document.createElement('div');
+    d.className = 'opt';
+    d.innerHTML = '<span class="opt-ltr">' + ltr + '</span><span class="opt-txt">' + Q.opts[i] + '</span>';
+    d.addEventListener('click', () => pick(d, i, Q));
+    opts.appendChild(d);
+  });
+
+  setProgress(idx);
+}
+
+function pick(el, idx, Q) {
+  if (answered) return;
+  answered = true;
+
+  document.querySelectorAll('.opt').forEach(o => { o.classList.add('locked'); });
+  el.classList.add('selected');
+
+  const ok = idx === Q.correct;
+
+  setTimeout(() => {
+    document.querySelectorAll('.opt').forEach((o, i) => {
+      if (i === idx && ok)  o.classList.add('correct-ans');
+      if (i === idx && !ok) o.classList.add('wrong-ans');
+      if (i === Q.correct && !ok) o.classList.add('reveal-ans');
+    });
+    const fb = document.getElementById('q-fb');
+    fb.textContent = (ok ? '✓  ' : '✗  ') + (ok ? Q.ok : Q.bad);
+    fb.className   = 'fb show ' + (ok ? 'fb-ok' : 'fb-bad');
+    btnNext.disabled = false;
+  }, 280);
+
+  log.push({ cat: Q.cat, chosen: idx, correct: Q.correct, ok, opts: Q.opts });
+}
+
+btnNext.addEventListener('click', () => {
+  cur++;
+  if (cur < QS.length) {
+    renderQ(cur);
+  } else {
+    showResults();
+  }
+});
+
+function showResults() {
+  const score = log.filter(r => r.ok).length;
+  const pct   = Math.round(score / QS.length * 100);
+  const L     = ['A','B','C','D'];
+
+  const col = score >= 9 ? 'var(--teal)' : score >= 6 ? 'var(--sage)' : 'var(--rose)';
+  const ring = document.getElementById('score-ring');
+  ring.style.borderColor = col;
+  ring.style.background  = score >= 6 ? 'var(--cbg)' : 'var(--wbg)';
+  const num = document.getElementById('res-num');
+  num.textContent = score;
+  num.style.color = col;
+
+  let title, desc;
+  if      (score >= 9) { title = 'Outstanding — Expert Level!';   desc = 'You scored ' + score + '/10 (' + pct + '%). Exceptional phishing awareness. You understand both foundational and advanced concepts including AiTM, Quishing, BEC, and FIDO2. Share this training with your team.'; }
+  else if (score >= 6) { title = 'Well Done — Strong Awareness';  desc = 'You scored ' + score + '/10 (' + pct + '%). Solid awareness overall. Review the questions you missed — pay attention to the feedback explanations to close any gaps.'; }
+  else                 { title = 'Needs Review — Revisit Training'; desc = 'You scored ' + score + '/10 (' + pct + '%). Phishing is the #1 entry point for data breaches. Please review the training slides carefully and retake this quiz to strengthen your awareness.'; }
+
+  document.getElementById('res-title').textContent = title;
+  document.getElementById('res-desc').textContent  = desc;
+
+  const body = document.getElementById('bd-body');
+  body.innerHTML = '';
+  log.forEach((r, i) => {
+    const row = document.createElement('div');
+    row.className = 'bd-row';
+    const chosenTxt  = L[r.chosen]  + ') ' + r.opts[r.chosen].substring(0, 52)  + (r.opts[r.chosen].length  > 52 ? '…' : '');
+    const correctTxt = L[r.correct] + ') ' + r.opts[r.correct].substring(0, 62) + (r.opts[r.correct].length > 62 ? '…' : '');
+    row.innerHTML =
+      '<span class="bd-q">Q' + (i+1) + '. ' + r.cat + '</span>' +
+      '<span><span class="tag ' + (r.ok ? 'tag-ok' : 'tag-bad') + '">' + (r.ok ? '✓ CORRECT' : '✗ WRONG') + '</span><br>' +
+      '<span style="color:var(--muted);font-size:.8rem">' + chosenTxt + '</span></span>' +
+      '<span class="bd-c">' + correctTxt + '</span>';
+    body.appendChild(row);
+  });
+
+  setProgress(QS.length);
+  show('s-results');
+}
+
+btnStart.addEventListener('click', () => {
+  cur = 0; log = [];
+  renderQ(0);
+  show('s-question');
+});
+
+btnRetry.addEventListener('click', () => {
+  cur = 0; log = [];
+  setProgress(0);
+  renderQ(0);
+  show('s-question');
+});
+</script>
+</body>
+</html>
