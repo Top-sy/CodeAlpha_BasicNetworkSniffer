@@ -40,7 +40,7 @@ CodeAlpha_PhishingAwarenessTraining/
 Watch the complete training presentation and interactive quiz demonstration here:
 
 Google Drive Folder:  
-[PASTE YOUR GOOGLE DRIVE LINK HERE]
+https://drive.google.com/drive/folders/124qIBl5Y3oSJAxu2rq3N7qYjl2Lrkw_j?usp=drive_link
 
 ## 📝 Interactive Quiz
 This project includes an interactive phishing awareness quiz.
